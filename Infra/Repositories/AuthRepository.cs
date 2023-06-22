@@ -3,16 +3,10 @@ using Domain.Repositories;
 using Domain.Base;
 using Infra.Configs;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using Domain.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Infra.Repositories
 {
