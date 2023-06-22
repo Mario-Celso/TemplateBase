@@ -1,5 +1,6 @@
 ﻿using Domain.Models.Out;
 using Domain.Repositories;
+using Domain.Base;
 using Infra.Configs;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualBasic;
@@ -10,37 +11,64 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Entities;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Infra.Repositories
 {
     public class AuthRepository : IAuthRepository
     {
-        public AuthRepository() { }
+        private readonly IUsersRepository _usersRepository;
 
-        public JwtAuthResponse Authenticate(string userName, string password)
+        public AuthRepository(IUsersRepository usersRepository) 
         {
-            var tokenExpiryTimeStamp = DateTime.Now.AddMinutes(JwtEnv.JWT_TOKEN_VALIDITY_MINS);
+            _usersRepository = usersRepository;
+        }
+
+        public JwtAuthResponse? Authenticate(string userName, string password)
+        {
+            Users user = _usersRepository.GetUserByUserName(userName);
+
+            if(user == null)
+                return null;
+
+            bool validPassWord = new Hash().DecryptString(password, user.Password);
+
+            if (!validPassWord)
+                return null;
+
+            var token = "";
+
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+
+            var tokenExpiryTimeStamp = DateTime.Now.AddMinutes(JwtEnv.JWT_TOKEN_VALIDITY_MINS);
             var tokenKey = Encoding.ASCII.GetBytes(JwtEnv.JWT_SECURITY_KEY);
-            var securityTokenDescriptor = new SecurityTokenDescriptor
+            
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new System.Security.Claims.ClaimsIdentity(new List<Claim>
+                Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, userName),
-                    new Claim(ClaimTypes.Role, "1")
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(ClaimTypes.Role, user.Role.ToString())
                 }),
                 Expires = tokenExpiryTimeStamp,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var securityToken = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
-            var token = jwtSecurityTokenHandler.WriteToken(securityToken);
+            try
+            {
+                var securityToken = jwtSecurityTokenHandler.CreateToken(tokenDescriptor);
+                token = jwtSecurityTokenHandler.WriteToken(securityToken);
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
+            
 
             return new JwtAuthResponse
             {
                 token = token,
-                user_name = userName,
-                expires_in = (int)tokenExpiryTimeStamp.Subtract(DateTime.Now).TotalSeconds
             };
         }
     }

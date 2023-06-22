@@ -19,7 +19,8 @@ namespace API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost(Name = "login")]
+        [HttpPost]
+        [Route("login")]
         public IActionResult Login([FromBody] AuthenticationRequest authenticationRequest)
         {
             var authResult = _authUseCase.Authenticate(authenticationRequest.UserName, authenticationRequest.Password);

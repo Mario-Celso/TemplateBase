@@ -19,6 +19,7 @@ namespace Application.UseCases
         {
             _authRepository = authRepository;
         }
+
         public JwtAuthResponse Authenticate(string userName, string password)
         {
             //validação

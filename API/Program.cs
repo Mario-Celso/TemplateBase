@@ -5,16 +5,19 @@ using Infra;
 using Infra.Configs;
 using Infra.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //// Add services to the container.
-var conn = builder.Configuration.GetConnectionString("DefaultConeection");
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApiDbContext>(
-        options => options.UseNpgsql(conn)
+    options => options.UseNpgsql(connectionString)
 );
 
 builder.Services.AddControllers();
@@ -35,13 +38,17 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(JwtEnv.JWT_SECURITY_KEY)),
         ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
     };
 });
 
 #region DependencyInjection
 builder.Services.AddTransient<IAuthRepository, AuthRepository>();
 builder.Services.AddTransient<IAuthUseCases, AuthUseCases>();
+
+builder.Services.AddTransient<IUsersRepository, UsersRepository>();
+builder.Services.AddTransient<IUsersUseCases, UsersUseCases>();
 #endregion DependencyInjection
 
 var app = builder.Build();

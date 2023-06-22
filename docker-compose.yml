@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     environment:
-      - ConnectionStrings__DefaultConnection=User ID=postgres;Password=postgres;Server=postgres_container;Host=test-db;Port=5433;Database=postgres;IntegratedSecurity=true;Pooling=true # debug runs in development mode
+      - ConnectionStrings__DefaultConnection=User ID=postgres;Password=postgres;Server=postgres_container;Host=postgres_container;Port=5432;Database=api_db;IntegratedSecurity=true;Pooling=true # debug runs in development mode
       - ASPNETCORE_URLS=http://+:80
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
@@ -30,7 +30,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=api_db
     volumes:
       - pgdata:/var/lib/postgresql/data # this is where your data persists in the container
     ports:
