@@ -13,7 +13,7 @@ Esse projeto tem como finalidade aplicar os conceitos que estou adquirindo atrav
 
  <br />
 
-------------------s
+------------------
 
 ## ✍️ Descrição do projeto
  <br />
